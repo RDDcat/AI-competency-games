@@ -2,26 +2,48 @@ import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "@/components/nav-bar";
 import Footer from "@/components/footer";
+import { GoogleAnalytics } from "@/components/google-analytics";
+import {
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+  TITLE_SUFFIX,
+} from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "역검 아케이드 — AI 역량검사 전략게임 연습장",
-  description:
-    "잡다(JOBDA) AI 역량검사 신역검 전략게임 9종 + 구버전 6종을 브라우저에서 그대로 연습하세요. 게임별 공략 가이드 포함, 설치·가입 없음. 기록은 내 브라우저에만 저장됩니다.",
-  keywords: [
-    "AI역량검사",
-    "역검",
-    "잡다",
-    "JOBDA",
-    "전략게임",
-    "역량검사 연습",
-    "역검 게임",
-  ],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s — ${TITLE_SUFFIX}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "역검 아케이드 — AI 역량검사 전략게임 연습장",
-    description:
-      "신역검 9종 + 구버전 6종 전략게임을 그대로 재현. 게임별 공략 가이드를 보고 바로 연습하세요.",
-    locale: "ko_KR",
     type: "website",
+    locale: "ko_KR",
+    url: "/",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -42,6 +64,7 @@ export default function RootLayout({
         <NavBar />
         <div className="flex-1">{children}</div>
         <Footer />
+        <GoogleAnalytics />
       </body>
     </html>
   );

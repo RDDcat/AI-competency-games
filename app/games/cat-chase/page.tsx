@@ -1,6 +1,9 @@
 import GameShell from "@/components/game-shell";
 import Game from "./game";
-export const metadata = { title: "고양이 술래잡기 — 역검 아케이드" };
+import { gameMetadata } from "@/lib/games";
+
+export const metadata = gameMetadata("cat-chase");
+
 export default function Page() {
   return (
     <GameShell slug="cat-chase">

@@ -1,7 +1,8 @@
 import GameShell from "@/components/game-shell";
 import Game from "./game";
+import { gameMetadata } from "@/lib/games";
 
-export const metadata = { title: "공 옮기기 (하노이의 탑) — 역검 아케이드" };
+export const metadata = gameMetadata("hanoi");
 
 export default function Page() {
   return (

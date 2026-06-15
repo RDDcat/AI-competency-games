@@ -5,6 +5,9 @@
  * (문항 수·제한시간)는 다를 수 있다.
  */
 
+import type { Metadata } from "next";
+import { SITE_NAME } from "@/lib/site";
+
 export type GameCategory = "기억력" | "인지력" | "분석력" | "성향" | "추론·계획";
 
 export type GameMeta = {
@@ -419,6 +422,39 @@ export function getGame(slug: string): GameMeta {
   const game = GAMES.find((g) => g.slug === slug);
   if (!game) throw new Error(`Unknown game slug: ${slug}`);
   return game;
+}
+
+/**
+ * 게임 페이지용 메타데이터 생성기. title 은 루트 레이아웃의
+ * 템플릿("%s — 역검 아케이드")에 의해 접미사가 자동으로 붙으므로 게임명만 넘긴다.
+ * description·OG·canonical 을 게임별로 채워 SEO·소셜 공유를 보강한다.
+ */
+export function gameMetadata(slug: string): Metadata {
+  const g = getGame(slug);
+  const path = `/games/${slug}`;
+  const fullTitle = `${g.title} — 역검 아케이드`;
+  const description = `${g.summary} ${g.tier} ${g.category} · ${g.measures} 측정. 공략 가이드와 함께 바로 연습하세요.`;
+  return {
+    title: g.title,
+    description,
+    keywords: [g.title, g.tier, "AI역량검사", "역검", "잡다", g.category],
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      locale: "ko_KR",
+      siteName: SITE_NAME,
+      url: path,
+      title: fullTitle,
+      description,
+      images: ["/opengraph-image"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle,
+      description,
+      images: ["/opengraph-image"],
+    },
+  };
 }
 
 /** 카테고리 배지 파스텔 톤 (Cal.com 배지 파스텔 — 아바타/배지에만 사용) */

@@ -1,6 +1,9 @@
 import GameShell from "@/components/game-shell";
 import Game from "./game";
-export const metadata = { title: "길 만들기 — 역검 아케이드" };
+import { gameMetadata } from "@/lib/games";
+
+export const metadata = gameMetadata("path");
+
 export default function Page() {
   return (
     <GameShell slug="path">

@@ -1,7 +1,8 @@
 import GameShell from "@/components/game-shell";
 import Game from "./game";
+import { gameMetadata } from "@/lib/games";
 
-export const metadata = { title: "공 무게 비교하기 — 역검 아케이드" };
+export const metadata = gameMetadata("ball-weight");
 
 export default function Page() {
   return (

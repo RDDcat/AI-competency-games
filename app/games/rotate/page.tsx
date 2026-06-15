@@ -1,6 +1,9 @@
 import GameShell from "@/components/game-shell";
 import Game from "./game";
-export const metadata = { title: "도형 회전하기 — 역검 아케이드" };
+import { gameMetadata } from "@/lib/games";
+
+export const metadata = gameMetadata("rotate");
+
 export default function Page() {
   return (
     <GameShell slug="rotate">

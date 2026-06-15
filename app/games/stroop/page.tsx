@@ -1,6 +1,9 @@
 import GameShell from "@/components/game-shell";
 import Game from "./game";
-export const metadata = { title: "색-단어 일치 판단 — 역검 아케이드" };
+import { gameMetadata } from "@/lib/games";
+
+export const metadata = gameMetadata("stroop");
+
 export default function Page() {
   return (
     <GameShell slug="stroop">
