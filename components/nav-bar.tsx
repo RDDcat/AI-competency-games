@@ -66,6 +66,7 @@ export default function NavBar() {
             게임 시작
           </LinkButton>
         </div>
+      </div>
     </header>
   );
 }
