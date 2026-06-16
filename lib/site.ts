@@ -5,7 +5,7 @@
 
 /** canonical·sitemap·OG 절대경로의 기준 URL (끝 슬래시 제거) */
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://ai-competency-games-six.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ai-interview-games.com"
 ).replace(/\/$/, "");
 
 export const SITE_NAME = "역검 아케이드";
