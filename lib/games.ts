@@ -426,13 +426,13 @@ export function getGame(slug: string): GameMeta {
 
 /**
  * 게임 페이지용 메타데이터 생성기. title 은 루트 레이아웃의
- * 템플릿("%s — 역검 아케이드")에 의해 접미사가 자동으로 붙으므로 게임명만 넘긴다.
+ * 템플릿("%s — 역검 무제한 연습하기")에 의해 접미사가 자동으로 붙으므로 게임명만 넘긴다.
  * description·OG·canonical 을 게임별로 채워 SEO·소셜 공유를 보강한다.
  */
 export function gameMetadata(slug: string): Metadata {
   const g = getGame(slug);
   const path = `/games/${slug}`;
-  const fullTitle = `${g.title} — 역검 아케이드`;
+  const fullTitle = `${g.title} — 역검 무제한 연습하기`;
   const description = `${g.summary} ${g.tier} ${g.category} · ${g.measures} 측정. 공략 가이드와 함께 바로 연습하세요.`;
   return {
     title: g.title,

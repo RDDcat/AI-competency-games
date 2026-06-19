@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
-export const alt = "역검 아케이드 — AI 역량검사 전략게임 연습장";
+export const alt = "역검 무제한 연습하기 — AI 역량검사 전략게임 연습장";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -62,12 +62,18 @@ export default async function Image() {
               height: 84,
               borderRadius: 24,
               background: "#111111",
-              color: "#ffffff",
-              fontSize: 46,
-              fontWeight: 700,
             }}
           >
-            역
+            <svg width="46" height="46" viewBox="0 0 24 24">
+              <path
+                d="M8.5 5.5 L8.5 18.5 L19 12 Z"
+                fill="#ffffff"
+                stroke="#ffffff"
+                strokeWidth={2.6}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
           <div
             style={{

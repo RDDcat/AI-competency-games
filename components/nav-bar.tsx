@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui";
+import { LogoMark } from "@/components/logo";
 
 // 카카오 오픈채팅 버그 제보 링크 (실제 링크로 교체 예정)
 const BUG_REPORT_URL = "https://open.kakao.com/o/sxwKdIzi";
@@ -9,11 +10,11 @@ export default function NavBar() {
     <header className="sticky top-0 z-40 border-b border-hairline-soft bg-canvas/95 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-on-dark">
-            역
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-on-dark">
+            <LogoMark className="h-5 w-5" />
           </span>
           <span className="text-[17px] font-semibold tracking-[-0.02em] text-ink">
-            역검 아케이드
+            역검 무제한 연습하기
           </span>
         </Link>
 
@@ -23,9 +24,6 @@ export default function NavBar() {
           </Link>
           <Link href="/#legacy" className="text-sm font-medium text-body hover:text-ink">
             구버전 게임
-          </Link>
-          <Link href="/#about" className="text-sm font-medium text-body hover:text-ink">
-            이 사이트는
           </Link>
         </nav>
 

@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { ACCA_GAMES, LEGACY_GAMES } from "@/lib/games";
+import { LogoMark } from "@/components/logo";
 
 export default function Footer() {
   return (
     <footer className="bg-surface-dark text-on-dark-soft">
       <div className="mx-auto w-full max-w-6xl px-6 py-16">
         <div className="mb-12 flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-canvas text-[13px] font-bold text-ink">
-            역
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-canvas text-ink">
+            <LogoMark className="h-5 w-5" />
           </span>
           <span className="text-[17px] font-semibold tracking-[-0.02em] text-on-dark">
-            역검 아케이드
+            역검 무제한 연습하기
           </span>
         </div>
 
@@ -85,7 +86,7 @@ export default function Footer() {
         </div>
 
         <p className="mt-12 border-t border-surface-dark-elevated pt-6 text-[13px] text-muted-soft">
-          © {new Date().getFullYear()} 역검 아케이드 · 비공식 연습 사이트 · 상표는 각 소유자의 자산입니다.
+          © {new Date().getFullYear()} 역검 무제한 연습하기 · 비공식 연습 사이트 · 상표는 각 소유자의 자산입니다.
         </p>
       </div>
     </footer>

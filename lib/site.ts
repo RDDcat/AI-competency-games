@@ -8,9 +8,9 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.ai-interview-games.com"
 ).replace(/\/$/, "");
 
-export const SITE_NAME = "역검 아케이드";
+export const SITE_NAME = "역검 무제한 연습하기";
 
-export const SITE_TITLE = "역검 아케이드 — AI 역량검사 전략게임 연습장";
+export const SITE_TITLE = "역검 무제한 연습하기 — AI 역량검사 전략게임 연습장";
 
 export const SITE_DESCRIPTION =
   "잡다(JOBDA) AI 역량검사 신역검 전략게임 9종 + 구버전 6종을 브라우저에서 그대로 연습하세요. 게임별 공략 가이드 포함, 설치·가입 없음. 기록은 내 브라우저에만 저장됩니다.";
@@ -26,7 +26,7 @@ export const SITE_KEYWORDS = [
 ];
 
 /** 제목 템플릿용 접미사 — 하위 페이지 title 에 자동으로 붙는다 */
-export const TITLE_SUFFIX = "역검 아케이드";
+export const TITLE_SUFFIX = "역검 무제한 연습하기";
 
 /**
  * GA4 측정 ID (G-XXXXXXXXXX). gtag.js 가 이 ID 로 로드되어 추적을 시작한다.

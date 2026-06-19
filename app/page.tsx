@@ -18,7 +18,7 @@ export default function Home() {
           <h1 className="display-xl mt-5">
             AI 역량검사 게임,
             <br />
-            실전 전에 마음껏 연습하세요
+            마음껏 연습하세요
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed">
             국내 게임형 역량검사를 사실상 독점한 잡다(JOBDA) 신역검 전략게임
@@ -35,8 +35,7 @@ export default function Home() {
             </LinkButton>
           </div>
           <p className="mt-6 text-[13px] text-muted-soft">
-            룰 출처: 잡다 공식 공략 영상 시리즈 + 응시 후기 교차 검증 · 세부
-            수치는 실제와 다를 수 있음
+            세부 수치는 실제와 다를 수 있음
           </p>
         </div>
 
@@ -52,8 +51,7 @@ export default function Home() {
           <h2 className="display-lg">신역검 전략게임 9종</h2>
           <p className="mt-3 max-w-2xl text-base leading-relaxed">
             현행 잡다 AI역량검사(ACCA)에 출제되는 게임 전부입니다. 기억력 ·
-            인지력 · 분석력 3개 영역, 모든 응시자에게 9종이 출제되는 것으로
-            알려져 있습니다.
+            인지력 · 분석력 3개 영역을 시험합니다
           </p>
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {ACCA_GAMES.map((g) => (
@@ -68,8 +66,7 @@ export default function Home() {
         <h2 className="display-md">구버전 게임 6종</h2>
         <p className="mt-3 max-w-2xl text-base leading-relaxed">
           구 AI면접·구역검(ACC)에서 출제되던 게임 중 룰이 확실하게 확인된
-          것들입니다. 일부 기업은 아직 구버전을 사용할 수 있고, 인지 훈련용으로도
-          좋습니다.
+          것들입니다. 일부 기업은 아직 구버전을 사용합니다.
         </p>
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {LEGACY_GAMES.map((g) => (
@@ -107,8 +104,9 @@ export default function Home() {
         <div className="rounded-2xl bg-surface-card px-8 py-12 text-center">
           <h2 className="display-sm">충분히 연습했다면, 실전 감각은 공식 응시로</h2>
           <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed">
-            잡다에서는 공식 튜토리얼과 무료 실전 응시를 제공합니다. 이곳에서
-            룰과 공략을 익힌 뒤 공식 환경에서 마무리하세요.
+            잡다에서는 공식 튜토리얼과 무료 실전 응시를 제공합니다.
+            <br />
+            이곳에서 룰과 공략을 익힌 뒤 공식 환경에서 마무리하세요.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <LinkButton href="https://jobda.acca.ai/tutorial">
