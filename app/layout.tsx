@@ -3,6 +3,7 @@ import "./globals.css";
 import NavBar from "@/components/nav-bar";
 import Footer from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { MicrosoftClarity } from "@/components/microsoft-clarity";
 import {
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
@@ -65,6 +66,7 @@ export default function RootLayout({
         <div className="flex-1">{children}</div>
         <Footer />
         <GoogleAnalytics />
+        <MicrosoftClarity />
       </body>
     </html>
   );

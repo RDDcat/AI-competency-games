@@ -33,3 +33,9 @@ export const TITLE_SUFFIX = "역검 무제한 연습하기";
  * 비워두면 GA4 스크립트가 로드되지 않는다(로컬·프리뷰에서 끄고 싶을 때).
  */
 export const GA4_ID = "G-LKPH9254B1";
+
+/**
+ * Microsoft Clarity 프로젝트 ID. 행동 분석(히트맵·세션 녹화·클릭 추적)을 담당한다.
+ * 비워두면 Clarity 스크립트가 로드되지 않는다(로컬·프리뷰에서 끄고 싶을 때).
+ */
+export const CLARITY_ID = "x9gw9ogjw0";
