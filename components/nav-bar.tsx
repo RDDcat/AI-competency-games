@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui";
 import { LogoMark } from "@/components/logo";
+import MobileMenu from "@/components/mobile-menu";
 
 // 카카오 오픈채팅 버그 제보 링크 (실제 링크로 교체 예정)
 const BUG_REPORT_URL = "https://open.kakao.com/o/sxwKdIzi";
@@ -66,6 +67,7 @@ export default function NavBar() {
           <LinkButton href="/#games" className="h-9 px-4">
             게임 시작
           </LinkButton>
+          <MobileMenu />
         </div>
       </div>
     </header>
