@@ -7,6 +7,7 @@ import {
 } from "@/lib/games";
 import { Badge, KeyCap, LinkButton } from "@/components/ui";
 import BestChip from "@/components/best-chip";
+import HomeHeroCta from "@/components/home-hero-cta";
 
 export default function Home() {
   return (
@@ -26,13 +27,8 @@ export default function Home() {
             <strong className="font-semibold text-ink">공략 가이드를 먼저 읽고</strong>{" "}
             시작합니다.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <LinkButton href="#games" className="h-11 px-6">
-              전략게임 9종 시작하기
-            </LinkButton>
-            <LinkButton variant="secondary" href="#legacy" className="h-11 px-6">
-              구버전 게임 보기
-            </LinkButton>
+          <div className="mt-8">
+            <HomeHeroCta />
           </div>
           <p className="mt-6 text-[13px] text-muted-soft">
             세부 수치는 실제와 다를 수 있음

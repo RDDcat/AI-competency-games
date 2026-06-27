@@ -41,8 +41,13 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-on-dark">공식 자료</h3>
+            <h3 className="mb-4 text-sm font-semibold text-on-dark">공략 · 자료</h3>
             <ul className="space-y-2.5 text-sm">
+              <li>
+                <Link href="/guide" className="hover:text-on-dark">
+                  게임별 공략 가이드
+                </Link>
+              </li>
               <li>
                 <a
                   href="https://jobda.acca.ai/tutorial"

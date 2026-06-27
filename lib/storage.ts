@@ -38,6 +38,30 @@ export function playCount(slug: string): number {
   return loadHistory(slug).length;
 }
 
+/**
+ * 모든 게임 기록을 훑어 가장 최근에 플레이한 게임을 돌려준다.
+ * 재방문자에게 "이어서 연습하기"를 제안할 때 사용. 기록이 없으면 null.
+ */
+export function lastPlayed(): { slug: string; at: string } | null {
+  if (typeof window === "undefined") return null;
+  let latest: { slug: string; at: string } | null = null;
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (!k || !k.startsWith("yga:")) continue;
+      const slug = k.slice(4);
+      // 기록은 최신순으로 저장되므로 첫 항목이 가장 최근
+      const at = loadHistory(slug)[0]?.at;
+      if (!at) continue;
+      // ISO 문자열은 사전식 비교가 곧 시간순 비교
+      if (!latest || at > latest.at) latest = { slug, at };
+    }
+  } catch {
+    return null;
+  }
+  return latest;
+}
+
 /** 결과를 저장하고, 신기록 여부와 이전 최고점을 돌려준다. */
 export function saveResult(
   slug: string,

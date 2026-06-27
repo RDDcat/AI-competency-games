@@ -457,6 +457,48 @@ export function gameMetadata(slug: string): Metadata {
   };
 }
 
+/**
+ * 독립 공략 페이지(/guide/[slug])용 메타데이터.
+ * "역검 ○○ 공략" 롱테일 검색을 노린다. title 은 레이아웃 템플릿이
+ * 접미사("— 역검 무제한 연습하기")를 자동으로 붙인다.
+ */
+export function guideMetadata(slug: string): Metadata {
+  const g = getGame(slug);
+  const path = `/guide/${slug}`;
+  const fullTitle = `${g.title} 공략 — 역검 무제한 연습하기`;
+  const description = `잡다(JOBDA) ${g.tier} ${g.title} 공략. ${g.summary} ${g.measures} 측정. 게임 방법과 핵심 공략 ${g.tips.length}가지를 정리했습니다.`;
+  return {
+    title: `${g.title} 공략`,
+    description,
+    keywords: [
+      `${g.title} 공략`,
+      `역검 ${g.title}`,
+      `${g.title}`,
+      g.tier,
+      "AI역량검사",
+      "역검",
+      "잡다",
+      "공략",
+    ],
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      locale: "ko_KR",
+      siteName: SITE_NAME,
+      url: path,
+      title: fullTitle,
+      description,
+      images: ["/opengraph-image"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle,
+      description,
+      images: ["/opengraph-image"],
+    },
+  };
+}
+
 /** 카테고리 배지 파스텔 톤 (Cal.com 배지 파스텔 — 아바타/배지에만 사용) */
 export const CATEGORY_TONE: Record<GameCategory, string> = {
   기억력: "bg-badge-pink/15 text-ink",

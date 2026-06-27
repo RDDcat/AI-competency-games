@@ -104,7 +104,7 @@ export default function GameShell({
       )}
 
       {phase === "playing" && (
-        <div key={runId} className="rounded-2xl border border-hairline bg-canvas p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:p-8">
+        <div key={runId} className="touch-manipulation select-none rounded-2xl border border-hairline bg-canvas p-4 shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:p-8">
           <div className="mb-4 flex items-center justify-between">
             <p className="text-[13px] font-medium text-muted-soft">
               {game.measures}
@@ -146,7 +146,15 @@ function IntroScreen({
     <div className="grid gap-6 lg:grid-cols-5">
       {/* 공략 가이드 — 사용자 요구사항: 게임 시작 전에 팁 먼저 */}
       <section className="lg:col-span-3 rounded-2xl bg-surface-card p-8">
-        <h2 className="display-sm mb-1">시작 전 공략 가이드</h2>
+        <div className="mb-1 flex items-baseline justify-between gap-3">
+          <h2 className="display-sm">시작 전 공략 가이드</h2>
+          <Link
+            href={`/guide/${game.slug}`}
+            className="shrink-0 text-[13px] font-semibold text-ink hover:underline"
+          >
+            전체 공략 보기 →
+          </Link>
+        </div>
         <p className="mb-5 text-sm text-muted">
           측정 역량: {game.measures}
         </p>

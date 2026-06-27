@@ -46,6 +46,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * 모바일 터치 최적화 — 시간제한 게임의 탭 반응을 빠르게.
+ * touch-action: manipulation → 더블탭 줌·300ms 클릭 지연 제거(핀치 줌은 유지하여 접근성 보존).
+ * tap-highlight 제거 → 빠른 연타 시 깜빡이는 회색 하이라이트 제거.
+ */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* 디스플레이 타이포 — 600 고정 + 음수 자간 (Cal Sans 시그니처를 Pretendard로 근사) */
 .display-xl {
   font-size: clamp(2rem, 5vw, 4rem);

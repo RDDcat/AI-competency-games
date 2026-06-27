@@ -13,11 +13,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: `${SITE_URL}/guide`,
+      lastModified: LAST_MODIFIED,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
     ...GAMES.map((g) => ({
       url: `${SITE_URL}/games/${g.slug}`,
       lastModified: LAST_MODIFIED,
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    ...GAMES.map((g) => ({
+      url: `${SITE_URL}/guide/${g.slug}`,
+      lastModified: LAST_MODIFIED,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
   ];
 }
