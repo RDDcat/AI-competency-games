@@ -42,7 +42,7 @@ export default function Home() {
       </section>
 
       {/* ───────── 신역검 9종 ───────── */}
-      <section id="games" className="border-t border-hairline-soft bg-surface-soft/60">
+      <section id="games" className="scroll-mt-20 border-t border-hairline-soft bg-surface-soft/60">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <h2 className="display-lg">신역검 전략게임 9종</h2>
           <p className="mt-3 max-w-2xl text-base leading-relaxed">
@@ -58,7 +58,7 @@ export default function Home() {
       </section>
 
       {/* ───────── 구버전 6종 ───────── */}
-      <section id="legacy" className="mx-auto w-full max-w-6xl px-6 py-24">
+      <section id="legacy" className="scroll-mt-20 mx-auto w-full max-w-6xl px-6 py-24">
         <h2 className="display-md">구버전 게임 6종</h2>
         <p className="mt-3 max-w-2xl text-base leading-relaxed">
           구 AI면접·구역검(ACC)에서 출제되던 게임 중 룰이 확실하게 확인된

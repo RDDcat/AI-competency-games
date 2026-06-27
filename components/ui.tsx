@@ -36,6 +36,13 @@ export function LinkButton({
       />
     );
   }
+  // 페이지 내 앵커(#id, /#id)는 next/link 가 클릭을 가로채고 스크롤하지 않는
+  // 경우가 있어, 브라우저 기본 스크롤을 쓰는 네이티브 a 로 처리한다.
+  if (href.startsWith("#") || href.startsWith("/#")) {
+    return (
+      <a href={href} className={`${VARIANT[variant]} ${className}`} {...props} />
+    );
+  }
   return <Link href={href} className={`${VARIANT[variant]} ${className}`} {...props} />;
 }
 

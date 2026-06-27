@@ -77,12 +77,12 @@ export default function GameShell({
       {/* 상단 경로 + 메타 */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link
+          <a
             href="/#games"
             className="text-sm font-medium text-muted hover:text-ink"
           >
             ← 게임 목록
-          </Link>
+          </a>
           <span className="text-hairline">|</span>
           <span className="text-xl">{game.emoji}</span>
           <h1 className="text-lg font-semibold tracking-[-0.01em] text-ink">

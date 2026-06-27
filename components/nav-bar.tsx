@@ -19,12 +19,12 @@ export default function NavBar() {
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/#games" className="text-sm font-medium text-body hover:text-ink">
+          <a href="/#games" className="text-sm font-medium text-body hover:text-ink">
             신역검 9종
-          </Link>
-          <Link href="/#legacy" className="text-sm font-medium text-body hover:text-ink">
+          </a>
+          <a href="/#legacy" className="text-sm font-medium text-body hover:text-ink">
             구버전 게임
-          </Link>
+          </a>
           <Link href="/guide" className="text-sm font-medium text-body hover:text-ink">
             공략 가이드
           </Link>
