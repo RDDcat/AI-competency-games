@@ -91,6 +91,37 @@ export function minSteps(target: St): number {
   return 8; // 군 구조상 도달 불가는 없음 — 방어값
 }
 
+/** 목표까지의 최소 변환 순서 하나를 BFS 로 복원 (자세히 보기의 ‘정답 예시’용). */
+export function solvePath(target: St): Op[] {
+  const tk = stKey(target);
+  if (tk === 0) return [];
+  const prev = new Map<number, { from: number; op: Op }>();
+  const seen = new Set<number>([0]);
+  const queue: St[] = [ID];
+  for (let i = 0; i < queue.length; i++) {
+    const cur = queue[i];
+    const ck = stKey(cur);
+    for (const op of OPS) {
+      const nxt = applyOp(cur, op);
+      const k = stKey(nxt);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      prev.set(k, { from: ck, op });
+      if (k === tk) {
+        const path: Op[] = [];
+        for (let key = tk; key !== 0; ) {
+          const p = prev.get(key)!;
+          path.push(p.op);
+          key = p.from;
+        }
+        return path.reverse();
+      }
+      queue.push(nxt);
+    }
+  }
+  return [];
+}
+
 /** 랜덤 시퀀스를 항등에 적용해 목표 생성. 항등이 되면(상쇄) 다시 뽑는다. */
 function makeTarget(minLen: number, maxLen: number): { target: St; par: number } {
   for (;;) {

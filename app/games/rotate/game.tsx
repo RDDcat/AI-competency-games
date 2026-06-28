@@ -17,7 +17,9 @@ import {
   composeSeq,
   cssTransform,
   makeProblem,
+  solvePath,
   stEq,
+  type Cell,
   type Op,
   type Problem,
   type Shape,
@@ -59,7 +61,7 @@ const ROUND_INTRO: Record<1 | 2, { title: string; lines: string[] }> = {
     lines: [
       "왼쪽 ‘전’ 도형을 오른쪽 ‘후’ 모양으로 만드는 변환 순서를 입력하세요.",
       "버튼을 눌러도 변환된 모습은 절대 미리 보여주지 않습니다 — 머릿속으로만 추적!",
-      "정답이면 다음 문제, 오답이면 같은 문제에 재도전합니다 (문제당 오답 1회 기록).",
+      "제출하면 정답·오답에 상관없이 다음 문제로 넘어갑니다 — 실수에 매달리지 말고 다음 문제를 푸세요.",
       "제한시간 3분 · 문제 수 무제한 · 입력 최대 8단계",
       "적게 입력해 맞힐수록 효율 점수가 높습니다.",
     ],
@@ -77,6 +79,14 @@ const ROUND_INTRO: Record<1 | 2, { title: string; lines: string[] }> = {
 
 type Phase = "intro" | "countdown" | "play";
 type Rec = { round: 1 | 2; par: number; steps: number };
+/** 자세히 보기용 — 문제별 제출 기록 (정답·오답 모두) */
+type Attempt = {
+  round: 1 | 2;
+  shape: Shape;
+  target: St;
+  userSeq: Op[];
+  ok: boolean;
+};
 
 /* ───────────────────────── 컴포넌트 ───────────────────────── */
 
@@ -104,7 +114,8 @@ export default function Game() {
   const lockedRef = useRef(locked);
   lockedRef.current = locked;
 
-  const recsRef = useRef<Rec[]>([]); // 정답 문항 기록
+  const recsRef = useRef<Rec[]>([]); // 정답 문항 기록 (점수용)
+  const attemptsRef = useRef<Attempt[]>([]); // 전체 제출 기록 (자세히 보기용)
   const wrongTotalRef = useRef(0); // 오답 제출이 있었던 문제 수
   const wrongFlaggedRef = useRef(false); // 현재 문제에서 이미 오답 기록했는지
   const flashTimerRef = useRef<number | null>(null);
@@ -133,19 +144,23 @@ export default function Game() {
         Math.round(Math.min(1, correct / TARGET_SOLVED) * 70 + eff * 30),
       ),
     );
-    finish({
-      score,
-      label: `정답 ${correct}문제`,
-      detail: [
-        { name: "1라운드 정답 (알파벳)", value: `${c1}문제` },
-        { name: "2라운드 정답 (타일)", value: `${c2}문제` },
-        {
-          name: "평균 스텝 효율 (최소÷사용)",
-          value: correct > 0 ? `${Math.round(eff * 100)}%` : "—",
-        },
-        { name: "오답 제출 문제", value: `${wrongTotalRef.current}개` },
-      ],
-    });
+    const attempts = attemptsRef.current;
+    finish(
+      {
+        score,
+        label: `정답 ${correct}문제`,
+        detail: [
+          { name: "1라운드 정답 (알파벳)", value: `${c1}문제` },
+          { name: "2라운드 정답 (타일)", value: `${c2}문제` },
+          {
+            name: "평균 스텝 효율 (최소÷사용)",
+            value: correct > 0 ? `${Math.round(eff * 100)}%` : "—",
+          },
+          { name: "오답 제출 문제", value: `${wrongTotalRef.current}개` },
+        ],
+      },
+      attempts.length > 0 ? <RotateReview rows={[...attempts]} /> : undefined,
+    );
   };
 
   const addOp = (op: Op) => {
@@ -169,6 +184,13 @@ export default function Game() {
     if (curSeq.length === 0) return;
     const prob = problemRef.current;
     const ok = stEq(composeSeq(curSeq), prob.target); // 정수 상태 비교 — epsilon 불필요
+    attemptsRef.current.push({
+      round: prob.round,
+      shape: prob.shape,
+      target: prob.target,
+      userSeq: curSeq,
+      ok,
+    });
     if (ok) {
       recsRef.current.push({
         round: prob.round,
@@ -189,13 +211,10 @@ export default function Game() {
       setFlashOk(null);
       setLocked(false);
       lockedRef.current = false;
-      if (ok) {
-        // 정답 → 새 문제, 시퀀스 비움
-        wrongFlaggedRef.current = false;
-        setSeq([]);
-        setProblem(makeProblem(roundRef.current));
-      }
-      // 오답 → 시퀀스 유지한 채 같은 문제 재도전
+      // 정답·오답 모두 제출하면 다음 문제로 (실제 검사처럼 문제당 1회 제출)
+      wrongFlaggedRef.current = false;
+      setSeq([]);
+      setProblem(makeProblem(roundRef.current));
     }, FLASH_MS);
   };
 
@@ -414,38 +433,162 @@ function ShapeCard({
   );
 }
 
-function ShapeView({ shape, st }: { shape: Shape; st: St }) {
+function ShapeView({
+  shape,
+  st,
+  compact = false,
+}: {
+  shape: Shape;
+  st: St;
+  compact?: boolean;
+}) {
   const transform = cssTransform(st);
   if (shape.kind === "letter") {
     return (
       <span
-        className="inline-block select-none text-8xl font-semibold leading-none text-ink"
+        className={`inline-block select-none font-semibold leading-none text-ink ${
+          compact ? "text-4xl" : "text-8xl"
+        }`}
         style={{ transform }}
       >
         {shape.ch}
       </span>
     );
   }
-  // 타일: 바운딩박스를 정사각 래퍼 중앙에 두고 래퍼째 변환 → 회전 중심 = 도형 중심
+  // 타일: 정사각 그리드(n×n) 전체를 그리고 색칠된 칸만 채운다 —
+  // 실제 잡다처럼 ‘격자에 색칠된 형태’. 래퍼째 변환하므로 회전 중심 = 그리드 중심.
   const n = Math.max(shape.w, shape.h);
-  const cell = n <= 4 ? 26 : 22; // 45° 회전 대각선이 카드(h-44)를 넘지 않게
+  const cell = compact ? (n <= 4 ? 12 : 10) : n <= 4 ? 26 : 22;
   const size = n * cell;
-  const ox = ((n - shape.w) / 2) * cell;
-  const oy = ((n - shape.h) / 2) * cell;
+  const ox = Math.floor((n - shape.w) / 2);
+  const oy = Math.floor((n - shape.h) / 2);
+  const filled = new Set(shape.cells.map(([x, y]) => `${x + ox},${y + oy}`));
+  const grid: Cell[] = [];
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) grid.push([x, y]);
   return (
     <div className="relative" style={{ width: size, height: size, transform }}>
-      {shape.cells.map(([x, y]) => (
-        <div
-          key={`${x},${y}`}
-          className="absolute rounded-[4px] bg-badge-violet"
-          style={{
-            left: ox + x * cell + 1,
-            top: oy + y * cell + 1,
-            width: cell - 2,
-            height: cell - 2,
-          }}
-        />
-      ))}
+      {grid.map(([x, y]) => {
+        const on = filled.has(`${x},${y}`);
+        return (
+          <div
+            key={`${x},${y}`}
+            className={`absolute border ${
+              on ? "border-ink bg-ink" : "border-hairline bg-canvas"
+            }`}
+            style={{ left: x * cell, top: y * cell, width: cell, height: cell }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/* ───────────────────────── 자세히 보기 (문제별 정답) ───────────────────────── */
+
+function RotateReview({ rows }: { rows: Attempt[] }) {
+  const correct = rows.filter((r) => r.ok).length;
+  return (
+    <div className="rounded-2xl border border-hairline bg-canvas p-5 text-left">
+      <h3 className="text-base font-semibold text-ink">문제별 결과</h3>
+      <p className="mb-4 mt-1 text-[13px] text-muted">
+        맞은 문제 {correct} · 틀린 문제 {rows.length - correct} · 틀린 문제는
+        정답 예시를 함께 표시합니다.
+      </p>
+      <ol className="max-h-112 space-y-3 overflow-y-auto pr-1">
+        {rows.map((a, i) => (
+          <li
+            key={i}
+            className="rounded-xl border border-hairline-soft p-3"
+          >
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-[13px] font-semibold text-ink">
+                {i + 1}번 · {a.round}라운드
+              </span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${
+                  a.ok ? "bg-badge-emerald/20 text-ink" : "bg-error/15 text-error"
+                }`}
+              >
+                {a.ok ? "정답" : "오답"}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <MiniShape shape={a.shape} st={ID} label="전" />
+              <span className="text-muted-soft">→</span>
+              <MiniShape shape={a.shape} st={a.target} label="후" />
+              <div className="min-w-32 flex-1 space-y-1.5">
+                <SeqRow label="내 입력" seq={a.userSeq} dim={!a.ok} />
+                {!a.ok && (
+                  <SeqRow label="정답 예시" seq={solvePath(a.target)} answer />
+                )}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function MiniShape({
+  shape,
+  st,
+  label,
+}: {
+  shape: Shape;
+  st: St;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-hairline bg-surface-soft">
+        <ShapeView shape={shape} st={st} compact />
+      </div>
+      <span className="text-[11px] text-muted-soft">{label}</span>
+    </div>
+  );
+}
+
+function SeqRow({
+  label,
+  seq,
+  dim = false,
+  answer = false,
+}: {
+  label: string;
+  seq: Op[];
+  dim?: boolean;
+  answer?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className={`w-16 shrink-0 text-[12px] ${
+          answer ? "font-semibold text-ink" : "text-muted"
+        }`}
+      >
+        {label}
+      </span>
+      <div className="flex flex-wrap items-center gap-1">
+        {seq.length === 0 ? (
+          <span className="text-[12px] text-muted-soft">미입력</span>
+        ) : (
+          seq.map((op, i) => (
+            <span
+              key={i}
+              className={`inline-flex h-6 w-6 items-center justify-center rounded border text-sm leading-none ${
+                answer
+                  ? "border-badge-emerald bg-badge-emerald/10 text-ink"
+                  : dim
+                    ? "border-hairline bg-surface-soft text-muted"
+                    : "border-hairline bg-canvas text-ink"
+              }`}
+            >
+              {OP_ICON[op]}
+            </span>
+          ))
+        )}
+      </div>
     </div>
   );
 }

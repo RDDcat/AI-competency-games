@@ -15,8 +15,8 @@ import { bestScore, saveResult, type GameResult } from "@/lib/storage";
 import { Badge, Button, KeyCap, LinkButton } from "@/components/ui";
 
 type ShellApi = {
-  /** 게임이 끝났을 때 결과를 보고한다 */
-  finish: (result: GameResult) => void;
+  /** 게임이 끝났을 때 결과를 보고한다. review 는 결과 화면 ‘자세히 보기’에 표시(선택) */
+  finish: (result: GameResult, review?: ReactNode) => void;
   /** 게임을 중단하고 안내 화면으로 돌아간다 */
   quit: () => void;
 };
@@ -43,6 +43,7 @@ export default function GameShell({
   const [phase, setPhase] = useState<Phase>("intro");
   const [runId, setRunId] = useState(0);
   const [result, setResult] = useState<GameResult | null>(null);
+  const [review, setReview] = useState<ReactNode>(null);
   const [isBest, setIsBest] = useState(false);
   const [prevBest, setPrevBest] = useState<number | null>(null);
   const [best, setBest] = useState<number | null>(null);
@@ -52,9 +53,10 @@ export default function GameShell({
   }, [slug, phase]);
 
   const finish = useCallback(
-    (r: GameResult) => {
+    (r: GameResult, rev?: ReactNode) => {
       const { isBest: nowBest, prevBest: prev } = saveResult(slug, r);
       setResult(r);
+      setReview(rev ?? null);
       setIsBest(nowBest);
       setPrevBest(prev);
       setPhase("done");
@@ -125,6 +127,7 @@ export default function GameShell({
           result={result}
           isBest={isBest}
           prevBest={prevBest}
+          review={review}
           onRetry={start}
           onIntro={quit}
         />
@@ -216,18 +219,21 @@ function ResultScreen({
   result,
   isBest,
   prevBest,
+  review,
   onRetry,
   onIntro,
 }: {
   result: GameResult;
   isBest: boolean;
   prevBest: number | null;
+  review?: ReactNode;
   onRetry: () => void;
   onIntro: () => void;
 }) {
+  const [showReview, setShowReview] = useState(false);
   return (
-    <div className="mx-auto max-w-xl">
-      <section className="rounded-2xl border border-hairline bg-canvas p-8 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+    <div className="mx-auto max-w-2xl">
+      <section className="mx-auto max-w-xl rounded-2xl border border-hairline bg-canvas p-8 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
         <p className="mb-2 text-sm font-medium text-muted">결과</p>
         <p className="display-xl">{result.score}점</p>
         {result.label && <p className="mt-2 text-base text-body">{result.label}</p>}
@@ -263,10 +269,20 @@ function ResultScreen({
             다른 게임 하기
           </LinkButton>
         </div>
+        {review && (
+          <button
+            type="button"
+            onClick={() => setShowReview((v) => !v)}
+            className="mt-4 text-sm font-semibold text-ink underline-offset-4 hover:underline"
+          >
+            {showReview ? "자세히 닫기 ▲" : "자세히 보기 (문제별 정답 확인) ▼"}
+          </button>
+        )}
         <p className="mt-5 text-[12px] text-muted-soft">
           기록은 이 브라우저의 로컬 저장소에만 저장됩니다.
         </p>
       </section>
+      {review && showReview && <div className="mt-4">{review}</div>}
     </div>
   );
 }
