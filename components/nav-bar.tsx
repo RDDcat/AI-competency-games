@@ -29,6 +29,9 @@ export default function NavBar() {
           <Link href="/guide" className="text-sm font-medium text-body hover:text-ink">
             공략 가이드
           </Link>
+          <Link href="/me" className="text-sm font-medium text-body hover:text-ink">
+            내 기록
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2">

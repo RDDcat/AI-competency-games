@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/#games", label: "신역검 9종" },
   { href: "/#legacy", label: "구버전 게임" },
   { href: "/guide", label: "공략 가이드" },
+  { href: "/me", label: "내 기록" },
 ];
 
 export default function MobileMenu() {
