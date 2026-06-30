@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 /** 모바일 헤더 메뉴 항목 — 데스크톱 nav 와 동일 구성 */
-const LINKS = [
+const LINKS: { href: string; label: string; ga?: Record<string, string> }[] = [
   { href: "/#games", label: "신역검 9종" },
   { href: "/#legacy", label: "구버전 게임" },
-  { href: "/guide", label: "공략 가이드" },
+  {
+    href: "/guide",
+    label: "공략 가이드",
+    ga: { "data-ga": "guide_click", "data-ga-source": "nav_mobile" },
+  },
   { href: "/me", label: "내 기록" },
 ];
 
@@ -86,11 +90,16 @@ export default function MobileMenu() {
                 return (
                   <li key={l.href}>
                     {isHash ? (
-                      <a href={l.href} onClick={close} className={cls}>
+                      <a href={l.href} onClick={close} className={cls} {...l.ga}>
                         {l.label}
                       </a>
                     ) : (
-                      <Link href={l.href} onClick={close} className={cls}>
+                      <Link
+                        href={l.href}
+                        onClick={close}
+                        className={cls}
+                        {...l.ga}
+                      >
                         {l.label}
                       </Link>
                     )}

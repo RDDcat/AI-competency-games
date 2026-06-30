@@ -105,12 +105,20 @@ export default function Home() {
             이곳에서 룰과 공략을 익힌 뒤 공식 환경에서 마무리하세요.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <LinkButton href="https://jobda.acca.ai/tutorial">
+            <LinkButton
+              href="https://jobda.acca.ai/tutorial"
+              data-ga="cta_click"
+              data-ga-cta-type="official_tutorial"
+              data-ga-location="home_cta"
+            >
               잡다 공식 튜토리얼
             </LinkButton>
             <LinkButton
               variant="secondary"
               href="https://www.youtube.com/playlist?list=PLRvhT8gNnOeoZNbmGq7GjImm7CC7e7-XU"
+              data-ga="cta_click"
+              data-ga-cta-type="official_video"
+              data-ga-location="home_cta"
             >
               공식 공략 영상 시리즈
             </LinkButton>

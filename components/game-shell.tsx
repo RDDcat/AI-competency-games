@@ -12,6 +12,13 @@ import {
 } from "react";
 import { CATEGORY_TONE, getGame } from "@/lib/games";
 import { bestScore, saveResult, type GameResult } from "@/lib/storage";
+import {
+  trackGameComplete,
+  trackGameStart,
+  trackResultView,
+  trackRetry,
+  trackShare,
+} from "@/lib/analytics";
 import { Badge, Button, KeyCap, LinkButton } from "@/components/ui";
 
 type ShellApi = {
@@ -60,17 +67,34 @@ export default function GameShell({
       setIsBest(nowBest);
       setPrevBest(prev);
       setPhase("done");
+      trackGameComplete({
+        slug,
+        title: game.title,
+        score: r.score,
+        isBest: nowBest,
+        prevBest: prev,
+      });
     },
-    [slug],
+    [slug, game.title],
   );
 
   const quit = useCallback(() => setPhase("intro"), []);
 
-  const start = useCallback(() => {
-    setRunId((id) => id + 1);
-    setResult(null);
-    setPhase("playing");
-  }, []);
+  const start = useCallback(
+    (retry = false) => {
+      setRunId((id) => id + 1);
+      setResult(null);
+      setPhase("playing");
+      trackGameStart(game, retry);
+    },
+    [game],
+  );
+
+  // ‘다시 하기’: 재시도 클릭을 별도로 기록한 뒤 새 판을 시작한다.
+  const retry = useCallback(() => {
+    trackRetry({ slug });
+    start(true);
+  }, [slug, start]);
 
   const api = useMemo(() => ({ finish, quit }), [finish, quit]);
 
@@ -102,7 +126,7 @@ export default function GameShell({
       </div>
 
       {phase === "intro" && (
-        <IntroScreen game={game} best={best} onStart={start} />
+        <IntroScreen game={game} best={best} onStart={() => start()} />
       )}
 
       {phase === "playing" && (
@@ -124,11 +148,13 @@ export default function GameShell({
 
       {phase === "done" && result && (
         <ResultScreen
+          slug={slug}
+          gameTitle={game.title}
           result={result}
           isBest={isBest}
           prevBest={prevBest}
           review={review}
-          onRetry={start}
+          onRetry={retry}
           onIntro={quit}
         />
       )}
@@ -153,6 +179,9 @@ function IntroScreen({
           <h2 className="display-sm">시작 전 공략 가이드</h2>
           <Link
             href={`/guide/${game.slug}`}
+            data-ga="guide_click"
+            data-ga-source="game_intro"
+            data-ga-slug={game.slug}
             className="shrink-0 text-[13px] font-semibold text-ink hover:underline"
           >
             전체 공략 보기 →
@@ -216,6 +245,8 @@ function IntroScreen({
 }
 
 function ResultScreen({
+  slug,
+  gameTitle,
   result,
   isBest,
   prevBest,
@@ -223,6 +254,8 @@ function ResultScreen({
   onRetry,
   onIntro,
 }: {
+  slug: string;
+  gameTitle: string;
   result: GameResult;
   isBest: boolean;
   prevBest: number | null;
@@ -231,6 +264,41 @@ function ResultScreen({
   onIntro: () => void;
 }) {
   const [showReview, setShowReview] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // 결과 화면이 뜰 때마다 한 번 result_view 를 보낸다(다시 하기 후 재노출도 집계).
+  useEffect(() => {
+    trackResultView({ slug, score: result.score, isBest });
+  }, [slug, result.score, isBest]);
+
+  async function handleShare() {
+    const url = `${window.location.origin}/games/${slug}`;
+    const text = `AI 역량검사 ‘${gameTitle}’ 연습에서 ${result.score}점 받았어요! 나도 연습하기`;
+
+    // 1) 네이티브 공유 시트(모바일 우선)
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: "역검 무제한 연습하기", text, url });
+        trackShare({ slug, score: result.score, method: "web_share" });
+        return;
+      } catch (err) {
+        // 사용자가 공유 시트를 닫으면 AbortError — 추적 없이 종료
+        if (err instanceof Error && err.name === "AbortError") return;
+        // 그 외 오류는 아래 클립보드 폴백으로 진행
+      }
+    }
+
+    // 2) 폴백: 링크+점수를 클립보드로 복사
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+      trackShare({ slug, score: result.score, method: "clipboard" });
+    } catch {
+      trackShare({ slug, score: result.score, method: "unsupported" });
+    }
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <section className="mx-auto max-w-xl rounded-2xl border border-hairline bg-canvas p-8 text-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
@@ -260,8 +328,11 @@ function ResultScreen({
           </dl>
         )}
 
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="mt-7 flex flex-col flex-wrap gap-3 sm:flex-row sm:justify-center">
           <Button onClick={onRetry}>다시 하기</Button>
+          <Button variant="secondary" onClick={handleShare}>
+            {copied ? "링크 복사됨 ✓" : "결과 공유하기"}
+          </Button>
           <Button variant="secondary" onClick={onIntro}>
             공략 다시 보기
           </Button>
