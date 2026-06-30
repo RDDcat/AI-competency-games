@@ -26,7 +26,12 @@ export default function NavBar() {
           <a href="/#legacy" className="text-sm font-medium text-body hover:text-ink">
             구버전 게임
           </a>
-          <Link href="/guide" className="text-sm font-medium text-body hover:text-ink">
+          <Link
+            href="/guide"
+            data-ga="guide_click"
+            data-ga-source="nav"
+            className="text-sm font-medium text-body hover:text-ink"
+          >
             공략 가이드
           </Link>
           <Link href="/me" className="text-sm font-medium text-body hover:text-ink">
@@ -41,6 +46,9 @@ export default function NavBar() {
             className="h-9 px-3"
             aria-label="버그 제보 (카카오 오픈채팅)"
             title="개발자에게 버그 제보하기"
+            data-ga="cta_click"
+            data-ga-cta-type="openchat"
+            data-ga-location="nav"
           >
             <svg
               width="16"

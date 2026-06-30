@@ -165,7 +165,12 @@ export default async function GuidePage({
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <LinkButton href={`/games/${slug}`}>{game.title} 연습하기</LinkButton>
-          <LinkButton variant="secondary" href="/guide">
+          <LinkButton
+            variant="secondary"
+            href="/guide"
+            data-ga="guide_click"
+            data-ga-source="guide_detail"
+          >
             다른 게임 공략 보기
           </LinkButton>
         </div>
@@ -176,6 +181,9 @@ export default async function GuidePage({
         {prev ? (
           <Link
             href={`/guide/${prev.slug}`}
+            data-ga="guide_click"
+            data-ga-source="guide_detail_nav"
+            data-ga-slug={prev.slug}
             className="flex-1 rounded-xl border border-hairline p-4 transition-colors hover:bg-surface-soft"
           >
             <span className="text-[12px] text-muted-soft">← 이전 공략</span>
@@ -189,6 +197,9 @@ export default async function GuidePage({
         {next ? (
           <Link
             href={`/guide/${next.slug}`}
+            data-ga="guide_click"
+            data-ga-source="guide_detail_nav"
+            data-ga-slug={next.slug}
             className="flex-1 rounded-xl border border-hairline p-4 text-right transition-colors hover:bg-surface-soft"
           >
             <span className="text-[12px] text-muted-soft">다음 공략 →</span>

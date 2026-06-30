@@ -44,7 +44,12 @@ export default function Footer() {
             <h3 className="mb-4 text-sm font-semibold text-on-dark">공략 · 자료</h3>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/guide" className="hover:text-on-dark">
+                <Link
+                  href="/guide"
+                  data-ga="guide_click"
+                  data-ga-source="footer"
+                  className="hover:text-on-dark"
+                >
                   게임별 공략 가이드
                 </Link>
               </li>
@@ -53,6 +58,9 @@ export default function Footer() {
                   href="https://jobda.acca.ai/tutorial"
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-ga="cta_click"
+                  data-ga-cta-type="official_tutorial"
+                  data-ga-location="footer"
                   className="hover:text-on-dark"
                 >
                   잡다 공식 튜토리얼
@@ -63,6 +71,9 @@ export default function Footer() {
                   href="https://www.youtube.com/playlist?list=PLRvhT8gNnOeoZNbmGq7GjImm7CC7e7-XU"
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-ga="cta_click"
+                  data-ga-cta-type="official_video"
+                  data-ga-location="footer"
                   className="hover:text-on-dark"
                 >
                   공식 공략 영상 시리즈
@@ -73,6 +84,9 @@ export default function Footer() {
                   href="https://www.jobda.im/info/406"
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-ga="cta_click"
+                  data-ga-cta-type="official_info"
+                  data-ga-location="footer"
                   className="hover:text-on-dark"
                 >
                   전략게임 공식 안내

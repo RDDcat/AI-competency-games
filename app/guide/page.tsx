@@ -71,6 +71,9 @@ function GuideCard({ game }: { game: GameMeta }) {
   return (
     <Link
       href={`/guide/${game.slug}`}
+      data-ga="guide_click"
+      data-ga-source="guide_hub"
+      data-ga-slug={game.slug}
       className="group flex flex-col rounded-xl bg-surface-card p-6 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
     >
       <div className="mb-3 flex items-center gap-2">
