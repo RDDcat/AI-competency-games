@@ -2,13 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useGameShell } from "@/components/game-shell";
-import {
-  Countdown,
-  Flash,
-  GameHUD,
-  RoundIntro,
-  TimeBar,
-} from "@/components/game-ui";
+import { Countdown, Flash, GameHUD, RoundIntro } from "@/components/game-ui";
 import { Badge, KeyCap } from "@/components/ui";
 import {
   answersFor,
@@ -72,6 +66,62 @@ function ShapeGlyph({ id, size }: { id: number; size: number }) {
         />
       ))}
     </svg>
+  );
+}
+
+/* ───────────────────────── 제한시간 바 ───────────────────────── */
+
+/**
+ * 공용 TimeBar(남은 시간이 줄어드는 방식) 대신 쓰는 전용 바.
+ * 이 게임은 보통 1초 안에 응답이 끝나서, 2.5초짜리 바가 줄어드는 연출로는
+ * 100%→70% 정도만 변해 멈춰 있는 것처럼 보인다. 그래서 '지나간 시간'이
+ * 0에서부터 차오르게 뒤집었다 — 짧은 경과 시간일수록 훨씬 또렷하게 읽힌다.
+ *
+ * ratio  0~1 로 정규화한 경과 시간
+ * mark   응답한 시점의 위치(0~1) — 작은 삼각형으로 잠깐 찍혔다 사라진다
+ * sweep  응답 직후, 바가 끝까지 밀려가는 마무리 연출(마커만 클릭 지점에 남는다)
+ */
+function ElapsedBar({
+  ratio,
+  mark,
+  tone,
+  sweep,
+}: {
+  ratio: number;
+  mark: number | null;
+  tone: "memo" | "answer";
+  sweep: boolean;
+}) {
+  const clamp = (v: number) => Math.max(0, Math.min(1, v));
+  const fill =
+    tone === "memo" ? "bg-badge-violet" : ratio > 0.7 ? "bg-error" : "bg-ink";
+  return (
+    <div className="relative h-4.5">
+      <div className="absolute inset-x-0 bottom-0 h-2 overflow-hidden rounded-full bg-surface-strong">
+        <div
+          className={`h-full rounded-full ${fill}`}
+          style={{
+            width: `${clamp(ratio) * 100}%`,
+            // 진행 중엔 매 프레임 직접 그리므로 트랜지션이 없어야 시계와 어긋나지 않는다
+            transition: sweep ? "width 240ms ease-out" : "none",
+          }}
+        />
+      </div>
+      {mark !== null && (
+        <span
+          className="pointer-events-none absolute bottom-2"
+          style={{
+            left: `${clamp(mark) * 100}%`,
+            animation: "nback-mark 300ms ease-out both",
+          }}
+        >
+          {/* 바를 내리찍는 방향의 삼각형 */}
+          <svg width="13" height="8" viewBox="0 0 13 8" className="block" aria-hidden="true">
+            <path d="M6.5,8 L0,0 L13,0 Z" fill="var(--color-ink)" />
+          </svg>
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -140,6 +190,8 @@ export default function Game() {
   const [flashOk, setFlashOk] = useState<boolean | null>(null);
   /** 직전에 실제로 눌린 응답 — 해당 버튼 위에 체크표시를 잠깐 띄운다 */
   const [pressed, setPressed] = useState<Action | null>(null);
+  /** 응답한 시점의 바 위치(0~1) — 삼각형 마커 자리 */
+  const [mark, setMark] = useState<number | null>(null);
   const [correct, setCorrect] = useState(0);
   const [remaining, setRemaining] = useState(QUESTION_MS);
 
@@ -212,24 +264,25 @@ export default function Game() {
     const data = rounds[r];
     if (i < data.memo) return; // 기억 단계에는 응답 없음
     const ok = a !== null && a === data.answers[i - data.memo];
+    const elapsed = Math.max(0, performance.now() - startedAtRef.current);
     recsRef.current.push({
       round: r,
       ok,
       noAnswer: a === null,
-      ms:
-        a === null
-          ? null
-          : Math.max(0, Math.round(performance.now() - startedAtRef.current)),
+      ms: a === null ? null : Math.round(elapsed),
     });
     if (ok) setCorrect((c) => c + 1);
     setFlashOk(ok);
     setPressed(a);
+    // 무응답(시간 초과)은 바가 이미 끝까지 간 상태 — 찍을 '클릭 시점'이 없다
+    setMark(a === null ? null : Math.min(1, elapsed / QUESTION_MS));
     phaseRef.current = "flash"; // 제한시간 만료 콜백 레이스 차단
     setPhase("flash");
     flashTimerRef.current = window.setTimeout(() => {
       flashTimerRef.current = null;
       setFlashOk(null);
       setPressed(null);
+      setMark(null);
       const next = i + 1;
       if (next < data.seq.length) {
         setSeqIndex(next);
@@ -351,26 +404,33 @@ export default function Game() {
   const hudLeft = isMemorize
     ? `${round + 1}라운드 · 기억 ${seqIndex + 1}/${cur.memo}`
     : `${round + 1}라운드 · ${respNum}/${respTotal}`;
+  // 응답 직후(flash)에는 바를 끝까지 밀어 마무리하고, 클릭 지점은 마커로 남긴다
+  const barRatio = phase === "flash" ? 1 : 1 - remaining / windowMs;
 
   return (
     <div className="min-h-[24rem]">
-      <style>{`@keyframes nback-flash{0%{box-shadow:0 0 0 6px rgba(17,17,17,.35);transform:scale(.96)}100%{box-shadow:0 0 0 0 rgba(17,17,17,0);transform:scale(1)}}@keyframes nback-check{0%{opacity:0;transform:scale(.6)}35%{opacity:1;transform:scale(1.08)}70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}`}</style>
+      <style>{`@keyframes nback-flash{0%{box-shadow:0 0 0 6px rgba(17,17,17,.35);transform:scale(.96)}100%{box-shadow:0 0 0 0 rgba(17,17,17,0);transform:scale(1)}}@keyframes nback-check{0%{opacity:0;transform:scale(.6)}35%{opacity:1;transform:scale(1.08)}70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}@keyframes nback-mark{0%{opacity:0;transform:translate(-50%,-6px)}30%{opacity:1;transform:translate(-50%,0)}70%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}`}</style>
       <GameHUD
         left={hudLeft}
         right={
           <span className="flex items-center gap-3">
             <span>정답 {correct}</span>
             <span
-              className={`inline-block w-14 text-right ${
+              className={`inline-block w-20 text-right ${
                 responding && remaining <= 800 ? "text-error" : "text-muted"
               }`}
             >
-              {(remaining / 1000).toFixed(1)}초
+              남은 {(remaining / 1000).toFixed(1)}초
             </span>
           </span>
         }
       />
-      <TimeBar remaining={remaining} total={windowMs} />
+      <ElapsedBar
+        ratio={barRatio}
+        mark={mark}
+        tone={isMemorize ? "memo" : "answer"}
+        sweep={phase === "flash"}
+      />
 
       <div className="mt-6 flex items-start justify-center gap-6">
         {/* 카드 더미 */}
