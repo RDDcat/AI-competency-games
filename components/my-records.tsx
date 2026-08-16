@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { GAMES } from "@/lib/games";
 import { LinkButton } from "@/components/ui";
+import { GameIcon } from "@/components/game-icon";
 import { loadHistory, type GameResult } from "@/lib/storage";
 
 type LogEntry = GameResult & {
@@ -110,7 +111,7 @@ export default function MyRecords() {
               className="flex items-center justify-between gap-3 rounded-xl border border-hairline bg-canvas p-4 transition-colors hover:bg-surface-soft"
             >
               <span className="flex min-w-0 items-center gap-2.5">
-                <span className="text-xl">{b.emoji}</span>
+                <GameIcon slug={b.slug} emoji={b.emoji} size={22} className="text-ink" />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-ink">
                     {b.title}
@@ -152,7 +153,7 @@ export default function MyRecords() {
                   className="flex w-full items-center justify-between gap-3 bg-canvas px-4 py-3 text-left transition-colors hover:bg-surface-soft"
                 >
                   <span className="flex min-w-0 items-center gap-2.5">
-                    <span className="text-lg">{e.emoji}</span>
+                    <GameIcon slug={e.slug} emoji={e.emoji} size={20} className="text-ink" />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium text-ink">
                         {e.title}

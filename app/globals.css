@@ -4,7 +4,20 @@
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
 
-  /* Cal.com 디자인 스펙 토큰 */
+  /*
+   * 잡다 역량검사 확신도 척도 전용 틸 — 고양이 술래잡기의 원형 선택지에만 쓴다.
+   * 사이트 전역 팔레트(primary·accent)는 건드리지 않는다.
+   *
+   * 참고 스크린샷에서 눈으로 맞춘 근사값이며 잡다의 공식 브랜드 hex 가 아니다.
+   * 색값 자체는 저작물이 아니므로 색만 맞추고, 로고·캐릭터·일러스트 등
+   * 잡다의 그래픽 자산은 일절 쓰지 않는다(이모지로 대체).
+   *
+   * 두 단계인 이유: 밝은 틸(#2bbfc3)은 흰 글자 대비가 2.25:1 로 WCAG AA 미달이라
+   * 면색 전용이고, 흰 바탕 위 텍스트에는 딥 틸(4.78:1, AA 통과)을 쓴다.
+   */
+  --color-brand: #2bbfc3; /* 면색 전용 — 선택된 원 */
+  --color-brand-deep: #077f87; /* 흰 바탕 위 틸 텍스트 */
+
   --color-canvas: #ffffff;
   --color-ink: #111111;
   --color-primary: #111111;
@@ -31,6 +44,10 @@
   --color-badge-violet: #8b5cf6;
   --color-badge-emerald: #34d399;
 
+  /* 도형 순서 기억하기(N-back) 도형 — 3종 모두 같은 민트색(색 단서 제거) */
+  --color-mint: #2dd4bf;
+  --color-mint-deep: #0d9488;
+
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
@@ -56,6 +73,37 @@ a,
 [role="button"] {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* 고양이 술래잡기 — 질문 단계에서 판이 사라지고 중앙에 떠오르는 고양이 */
+@keyframes cat-float-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes cat-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.cat-float {
+  animation:
+    cat-float-in 220ms ease-out,
+    cat-bob 2.4s ease-in-out 220ms infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cat-float {
+    animation: none;
+  }
 }
 
 /* 디스플레이 타이포 — 600 고정 + 음수 자간 (Cal Sans 시그니처를 Pretendard로 근사) */

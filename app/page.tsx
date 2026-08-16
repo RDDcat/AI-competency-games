@@ -8,6 +8,7 @@ import {
 import { Badge, KeyCap, LinkButton } from "@/components/ui";
 import BestChip from "@/components/best-chip";
 import HomeHeroCta from "@/components/home-hero-cta";
+import { GameIcon } from "@/components/game-icon";
 
 export default function Home() {
   return (
@@ -146,8 +147,8 @@ function GameCard({
       className={`group flex flex-col rounded-xl p-8 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] ${surface}`}
     >
       <div className="mb-4 flex items-center justify-between">
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-canvas text-xl shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-          {game.emoji}
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-canvas text-ink shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+          <GameIcon slug={game.slug} emoji={game.emoji} size={24} />
         </span>
         <BestChip slug={game.slug} />
       </div>
@@ -186,7 +187,10 @@ function HeroMockup() {
   return (
     <div className="rounded-2xl border border-hairline bg-canvas p-6 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
       <div className="mb-4 flex items-center justify-between">
-        <span className="text-sm font-semibold text-ink">🔷 도형 순서 기억하기</span>
+        <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+          <GameIcon slug="shape-nback" emoji="🔷" size={18} />
+          도형 순서 기억하기
+        </span>
         <span className="rounded-full bg-surface-card px-2.5 py-0.5 text-[12px] font-medium">
           2-back
         </span>

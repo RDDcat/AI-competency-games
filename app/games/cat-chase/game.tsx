@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useGameShell } from "@/components/game-shell";
 import { Countdown, GameHUD, RoundIntro, TimeBar } from "@/components/game-ui";
 
@@ -9,10 +9,34 @@ import { Countdown, GameHUD, RoundIntro, TimeBar } from "@/components/game-ui";
 const GRID = 6;
 const CELLS = GRID * GRID;
 const TOTAL_ITEMS = 20;
-const SHOW_MS = 1500; // 생쥐 노출
+const SHOW_MS = 1500; // 1장면: 생쥐만 노출 (색 테두리 없음)
 const HIDE_MS = 700; // "숨었습니다" 메시지
-const ASK_MS = 5000; // 질문 제한시간
+const CATS_MS = 2000; // 2장면: 고양이 + 빨강·파랑 테두리 노출
+const ASK_MS = 5000; // 질문 제한시간 (판이 사라진 상태)
 const GAP_MS = 450; // 다음 문항 전 간격
+
+/**
+ * 난이도 단계 — 실제 시험처럼 몇 문항마다 쥐·고양이 마리 수가 늘어난다.
+ * 0단계에서 시작해 STAGE_SIZE 문항마다 한 칸씩, MAX_STAGE 에서 멈춘다.
+ *
+ * 쥐 4→16 사다리는 실제 시험을 관찰해 재구현한 사례를 따랐고,
+ * 고양이 증가폭(4→10)은 출처가 없어 더 완만하게 잡았다 —
+ * 고양이는 빨강·파랑 위치까지 외워야 하는 대상이라 같은 기울기면 금세 불가능해진다.
+ */
+const STAGE_SIZE = 3; // 3문항마다 한 단계
+const MAX_STAGE = 6; // 0~6, 총 7단계
+const MICE_BASE = 4;
+const MICE_STEP = 2; // 4 → 16
+const CATS_BASE = 4;
+const CATS_STEP = 1; // 4 → 10
+
+/** 문항 인덱스(0-base) → 난이도 단계 */
+function stageOf(index: number): number {
+  return Math.min(MAX_STAGE, Math.floor(index / STAGE_SIZE));
+}
+
+const miceAt = (stage: number) => MICE_BASE + MICE_STEP * stage;
+const catsAt = (stage: number) => CATS_BASE + CATS_STEP * stage;
 
 /**
  * 8버튼 양극 척도 → p(찾았다) 확률 환산.
@@ -30,10 +54,28 @@ const CONF_LABEL = [
   "매우 확실",
 ] as const;
 
+/**
+ * 확신이 강한 양 끝일수록 큰 원 — 척도의 세기를 크기로 읽게 한다.
+ * 8열이 한 줄에 들어가야 하므로 뷰포트별로 지름을 낮춘다(320px 기기까지 겹침 없음).
+ */
+const CIRCLE_SIZE = [
+  "h-7 w-7 min-[360px]:h-8 min-[360px]:w-8 sm:h-14 sm:w-14",
+  "h-6 w-6 min-[360px]:h-7 min-[360px]:w-7 sm:h-12 sm:w-12",
+  "h-5 w-5 min-[360px]:h-6 min-[360px]:w-6 sm:h-10 sm:w-10",
+  "h-4 w-4 min-[360px]:h-5 min-[360px]:w-5 sm:h-9 sm:w-9",
+  "h-4 w-4 min-[360px]:h-5 min-[360px]:w-5 sm:h-9 sm:w-9",
+  "h-5 w-5 min-[360px]:h-6 min-[360px]:w-6 sm:h-10 sm:w-10",
+  "h-6 w-6 min-[360px]:h-7 min-[360px]:w-7 sm:h-12 sm:w-12",
+  "h-7 w-7 min-[360px]:h-8 min-[360px]:w-8 sm:h-14 sm:w-14",
+] as const;
+
+/** 가장 큰 원과 같은 높이 — 원 행의 기준선 고정용 */
+const CIRCLE_ROW_H = "h-7 min-[360px]:h-8 sm:h-14";
+
 type Item = {
   mice: number[];
-  /** [빨간 칸 고양이, 파란 칸 고양이, 들러리 2마리] 의 칸 인덱스 */
-  cats: [number, number, number, number];
+  /** [빨간 테두리, 파란 테두리, 들러리…] 의 칸 인덱스 — 길이는 난이도에 따라 늘어난다 */
+  cats: number[];
   redOnMouse: 0 | 1;
   blueOnMouse: 0 | 1;
 };
@@ -51,17 +93,22 @@ function shuffle<T>(arr: T[]): T[] {
 
 /**
  * 문항 생성 — 빨강·파랑 각각 독립적으로 50% 확률로 생쥐 칸 위에 배치한다.
- * 생쥐 4~7 / 비생쥐 29~32 칸이므로 어느 분기든 배치 가능한 칸이 항상 존재한다.
+ * 이 50% 는 난이도와 무관하게 고정이다: 정답의 사전확률이 흔들리면
+ * Brier 채점(캘리브레이션)이 왜곡되기 때문이다.
+ *
+ * 최고 단계에서도 쥐 16 / 비쥐 20 / 고양이 10 이라 어느 분기든 남는 칸이 있다.
  */
-function makeItem(): Item {
+function makeItem(stage: number): Item {
   const cells = shuffle(Array.from({ length: CELLS }, (_, i) => i));
-  const mouseCount = 4 + Math.floor(Math.random() * 4); // 4~7
-  const mice = cells.slice(0, mouseCount);
-  const nonMice = cells.slice(mouseCount);
+  const mice = cells.slice(0, miceAt(stage));
+  const nonMice = cells.slice(miceAt(stage));
   const used = new Set<number>();
+  const all = Array.from({ length: CELLS }, (_, i) => i);
   const pickFrom = (pool: number[]): number => {
     const avail = pool.filter((c) => !used.has(c));
-    const c = avail[Math.floor(Math.random() * avail.length)];
+    // 상수를 더 키워도 undefined 칸이 나오지 않도록 — 현재 값에서는 닿지 않는 분기
+    const from = avail.length > 0 ? avail : all.filter((c) => !used.has(c));
+    const c = from[Math.floor(Math.random() * from.length)];
     used.add(c);
     return c;
   };
@@ -69,24 +116,36 @@ function makeItem(): Item {
   const red = pickFrom(redOnMouse ? mice : nonMice);
   const blueOnMouse = Math.random() < 0.5;
   const blue = pickFrom(blueOnMouse ? mice : nonMice);
-  const all = Array.from({ length: CELLS }, (_, i) => i);
-  const d1 = pickFrom(all);
-  const d2 = pickFrom(all);
+  const decoys = Array.from({ length: catsAt(stage) - 2 }, () => pickFrom(all));
   return {
     mice,
-    cats: [red, blue, d1, d2],
+    cats: [red, blue, ...decoys],
     redOnMouse: redOnMouse ? 1 : 0,
     blueOnMouse: blueOnMouse ? 1 : 0,
   };
 }
 
 function makeItems(): Item[] {
-  return Array.from({ length: TOTAL_ITEMS }, makeItem);
+  return Array.from({ length: TOTAL_ITEMS }, (_, i) => makeItem(stageOf(i)));
 }
 
 /* ───────────────────────── 컴포넌트 ───────────────────────── */
 
-type Phase = "intro" | "countdown" | "show" | "hide" | "askRed" | "askBlue" | "gap";
+/**
+ * 문항 진행 3장면:
+ *  show  → 생쥐만 보인다 (고양이·색 테두리 없음 — 위치 암기 구간)
+ *  cats  → 생쥐는 숨고 고양이 4마리 등장, 그중 둘에 빨강·파랑 테두리
+ *  ask*  → 판이 통째로 사라지고 질문 대상 고양이 한 마리만 중앙에 뜬다
+ */
+type Phase =
+  | "intro"
+  | "countdown"
+  | "show"
+  | "hide"
+  | "cats"
+  | "askRed"
+  | "askBlue"
+  | "gap";
 
 export default function Game() {
   const { finish } = useGameShell();
@@ -178,7 +237,11 @@ export default function Game() {
       return () => window.clearTimeout(t);
     }
     if (phase === "hide") {
-      const t = window.setTimeout(() => go("askRed"), HIDE_MS);
+      const t = window.setTimeout(() => go("cats"), HIDE_MS);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === "cats") {
+      const t = window.setTimeout(() => go("askRed"), CATS_MS);
       return () => window.clearTimeout(t);
     }
     if (phase === "gap" && !finishedRef.current) {
@@ -231,10 +294,11 @@ export default function Game() {
       <RoundIntro
         title="고양이 술래잡기 — 순간기억 × 확신도"
         lines={[
-          "6×6 격자에 생쥐 🐭 4~7마리가 1.5초만 나타났다가 숨습니다.",
-          "이어서 고양이 🐱 4마리가 등장합니다 — 빨간 칸·파란 칸 위의 고양이가 질문 대상입니다.",
-          "“그 칸에 생쥐가 있었을까?” 를 8단계 확신도로 답하세요. 질문당 5초, 항상 빨간 칸 먼저.",
+          "① 6×6 격자에 생쥐 🐭 들이 1.5초만 나타났다가 숨습니다.",
+          "② 이어서 고양이 🐱 들이 등장합니다 — 빨간 테두리·파란 테두리 고양이의 위치까지 함께 기억하세요.",
+          "③ 판이 사라지고 질문 대상 고양이만 중앙에 뜹니다. “이 고양이가 생쥐를 찾았을까?” 를 8단계 확신도로 답하세요. 질문당 5초, 항상 빨강 먼저.",
           "채점 방식: 정답률보다 확신도의 정직함이 점수입니다. 모르면 '불확실', 확실할 때만 '확실'을 누르세요.",
+          "3문항마다 난이도가 오릅니다 — 생쥐 4마리로 시작해 16마리까지, 고양이도 함께 늘어납니다.",
           "근거 없이 '매우 확실'을 남발하면 점수가 폭락합니다. 총 20문항 × 2질문 = 40응답.",
         ]}
         keys={[
@@ -253,20 +317,22 @@ export default function Game() {
 
   const item = items[Math.min(qIndex, TOTAL_ITEMS - 1)];
   const miceSet = new Set(item.mice);
-  const [redCell, blueCell, d1, d2] = item.cats;
-  const catSet = new Set([redCell, blueCell, d1, d2]);
+  const [redCell, blueCell] = item.cats;
+  const catSet = new Set(item.cats);
   const asking = phase === "askRed" || phase === "askBlue";
   const showMice = phase === "show";
-  const showCats = asking;
+  const showCats = phase === "cats";
 
   const status =
     phase === "show"
       ? "생쥐 위치를 기억하세요!"
       : phase === "hide"
         ? "생쥐들이 숨었습니다 🫥"
-        : asking
-          ? "고양이 4마리 등장 — 색 테두리 칸에 주목"
-          : "다음 문항…";
+        : phase === "cats"
+          ? "고양이 4마리 등장 — 🔴 빨강 · 🔵 파랑 위치를 기억하세요"
+          : asking
+            ? "판이 사라졌습니다 — 기억으로 답하세요"
+            : "다음 문항…";
 
   return (
     <div className="min-h-[24rem]">
@@ -276,7 +342,7 @@ export default function Game() {
             문항 {Math.min(qIndex + 1, TOTAL_ITEMS)}/{TOTAL_ITEMS}
             {asking && (
               <span className="ml-2">
-                · {phase === "askRed" ? "🔴 빨간 칸 질문" : "🔵 파란 칸 질문"}
+                · {phase === "askRed" ? "🔴 빨간 고양이 질문" : "🔵 파란 고양이 질문"}
               </span>
             )}
           </span>
@@ -287,35 +353,55 @@ export default function Game() {
       {/* 상태 메시지 — 고정 높이로 레이아웃 점프 방지 */}
       <p className="mb-3 h-6 text-center text-[15px] font-medium text-body">{status}</p>
 
-      {/* 6×6 격자 */}
-      <div className="flex justify-center">
-        <div className="grid grid-cols-6 gap-1.5 rounded-xl border border-hairline bg-canvas p-3">
-          {Array.from({ length: CELLS }, (_, i) => {
-            const isRed = i === redCell;
-            const isBlue = i === blueCell;
-            const active =
-              (phase === "askRed" && isRed) || (phase === "askBlue" && isBlue);
-            const border = isRed
-              ? "border-2 border-red-500"
-              : isBlue
-                ? "border-2 border-blue-500"
-                : "border border-hairline";
-            return (
-              <div
-                key={i}
-                className={`flex h-10 w-10 items-center justify-center rounded-md bg-surface-card text-xl sm:h-12 sm:w-12 ${border} ${
-                  active ? (isRed ? "ring-2 ring-red-200" : "ring-2 ring-blue-200") : ""
-                }`}
-              >
-                {showMice && miceSet.has(i) && <span>🐭</span>}
-                {showCats && catSet.has(i) && <span>🐱</span>}
-              </div>
-            );
-          })}
-        </div>
+      {/*
+        판 영역 — 높이를 고정해 격자 ↔ 중앙 고양이 전환 시 레이아웃 점프를 막는다.
+        색 테두리는 'cats' 장면부터만 존재한다: 생쥐 노출 중에 보이면 어느 칸을 물을지
+        미리 알게 되어 기억 과제가 무너진다.
+      */}
+      <div className="flex min-h-74 items-center justify-center sm:min-h-86">
+        {asking ? (
+          <div className="flex flex-col items-center gap-3">
+            <div
+              className={`cat-float flex h-24 w-24 items-center justify-center rounded-2xl bg-surface-card text-5xl shadow-elevated sm:h-28 sm:w-28 sm:text-6xl ${
+                phase === "askRed"
+                  ? "border-4 border-red-500 ring-4 ring-red-100"
+                  : "border-4 border-blue-500 ring-4 ring-blue-100"
+              }`}
+            >
+              🐱
+            </div>
+            <span
+              className={`text-[13px] font-semibold ${
+                phase === "askRed" ? "text-red-600" : "text-blue-600"
+              }`}
+            >
+              {phase === "askRed" ? "빨간 테두리 고양이" : "파란 테두리 고양이"}
+            </span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-6 gap-1.5 rounded-xl border border-hairline bg-canvas p-3">
+            {Array.from({ length: CELLS }, (_, i) => {
+              const border =
+                showCats && i === redCell
+                  ? "border-2 border-red-500"
+                  : showCats && i === blueCell
+                    ? "border-2 border-blue-500"
+                    : "border border-hairline";
+              return (
+                <div
+                  key={i}
+                  className={`flex h-10 w-10 items-center justify-center rounded-md bg-surface-card text-xl sm:h-12 sm:w-12 ${border}`}
+                >
+                  {showMice && miceSet.has(i) && <span>🐭</span>}
+                  {showCats && catSet.has(i) && <span>🐱</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* 질문 + 8버튼 척도 — 비질문 단계에서는 투명 처리로 높이 유지 */}
+      {/* 질문 + 8단계 원형 척도 — 비질문 단계에서는 투명 처리로 높이 유지 */}
       <div
         className={`mx-auto mt-5 max-w-xl transition-opacity duration-150 ${
           asking ? "opacity-100" : "pointer-events-none opacity-0"
@@ -325,37 +411,65 @@ export default function Game() {
         <p className="mt-3 text-center text-[15px] text-body">
           {phase === "askBlue" ? (
             <>
-              <span className="font-semibold text-blue-600">파란 칸</span>의 고양이는
-              생쥐를 찾았을까요?
+              <span className="font-semibold text-blue-600">파란 테두리</span> 고양이가
+              서 있던 칸에 생쥐가 있었을까요?
             </>
           ) : (
             <>
-              <span className="font-semibold text-red-600">빨간 칸</span>의 고양이는
-              생쥐를 찾았을까요?
+              <span className="font-semibold text-red-600">빨간 테두리</span> 고양이가 서
+              있던 칸에 생쥐가 있었을까요?
             </>
           )}
         </p>
         <div className="mt-3 mb-1.5 flex justify-between text-[13px] font-medium">
           <span className="text-error">← 놓쳤다</span>
-          <span className="text-success">찾았다 →</span>
+          <span className="text-brand-deep">찾았다 →</span>
         </div>
-        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
-          {P_OF_CHOICE.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => record(i)}
-              disabled={!asking}
-              className="flex flex-col items-center gap-0.5 rounded-lg border border-hairline bg-canvas px-1 py-2 transition-colors hover:bg-surface-soft active:bg-surface-card"
-            >
-              <span className="text-[11px] tabular-nums text-muted">{i + 1}</span>
-              <span
-                className={`text-[12px] font-medium ${i <= 3 ? "text-error" : "text-success"}`}
-              >
-                {CONF_LABEL[i]}
-              </span>
-            </button>
-          ))}
+        {/* 양극 척도 — 원형 선택지, 확신이 강한 양 끝일수록 원이 커진다 */}
+        <div className="mt-4 flex items-start justify-center gap-0.5 sm:gap-2">
+          {P_OF_CHOICE.map((_, i) => {
+            const negative = i <= 3;
+            return (
+              <Fragment key={i}>
+                {i === 4 && (
+                  <span
+                    aria-hidden
+                    className={`w-px flex-none self-start bg-hairline ${CIRCLE_ROW_H}`}
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={() => record(i)}
+                  disabled={!asking}
+                  aria-label={`${negative ? "놓쳤다" : "찾았다"} · ${CONF_LABEL[i]}`}
+                  className="group flex max-w-16 min-w-0 flex-1 basis-0 flex-col items-center gap-1.5"
+                >
+                  {/* 크기가 달라도 라벨 기준선이 흔들리지 않도록 원은 고정 높이 안에서 중앙 정렬 */}
+                  <span className={`flex items-center ${CIRCLE_ROW_H}`}>
+                    <span
+                      className={`flex flex-none items-center justify-center rounded-full bg-surface-strong transition-colors ${CIRCLE_SIZE[i]} ${
+                        negative
+                          ? "group-hover:bg-error group-active:bg-error"
+                          : "group-hover:bg-brand group-active:bg-brand"
+                      }`}
+                    >
+                      <span className="h-3/5 w-3/5 rounded-full bg-canvas" />
+                    </span>
+                  </span>
+                  <span
+                    className={`text-center text-[10px] leading-tight font-medium break-keep sm:text-[11px] ${
+                      negative ? "text-error" : "text-brand-deep"
+                    }`}
+                  >
+                    {CONF_LABEL[i]}
+                  </span>
+                  <span className="hidden text-[10px] tabular-nums text-muted-soft sm:block">
+                    {i + 1}
+                  </span>
+                </button>
+              </Fragment>
+            );
+          })}
         </div>
         <p className="mt-2 text-center text-[12px] text-muted">
           5초 초과 시 '불확실' 중립으로 처리됩니다

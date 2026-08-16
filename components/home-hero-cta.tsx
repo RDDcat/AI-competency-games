@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LinkButton } from "@/components/ui";
+import { GameIcon } from "@/components/game-icon";
 import { getGame } from "@/lib/games";
 import { bestScore, lastPlayed } from "@/lib/storage";
 
@@ -43,8 +44,9 @@ export default function HomeHeroCta() {
           <span className="font-semibold text-ink">👋 다시 오셨네요</span>
           <span className="text-muted">
             마지막 연습{" "}
-            <span className="font-medium text-ink">
-              {resume.emoji} {resume.title}
+            <span className="inline-flex items-center gap-1 align-[-0.18em] font-medium text-ink">
+              <GameIcon slug={resume.slug} emoji={resume.emoji} size={16} />
+              {resume.title}
             </span>
             {resume.best !== null && (
               <>
