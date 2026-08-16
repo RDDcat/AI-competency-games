@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { CATEGORY_TONE, getGame } from "@/lib/games";
+import { GameIcon } from "@/components/game-icon";
 import { bestScore, saveResult, type GameResult } from "@/lib/storage";
 import {
   trackGameComplete,
@@ -110,7 +111,12 @@ export default function GameShell({
             ← 게임 목록
           </a>
           <span className="text-hairline">|</span>
-          <span className="text-xl">{game.emoji}</span>
+          <GameIcon
+            slug={game.slug}
+            emoji={game.emoji}
+            size={22}
+            className="text-ink"
+          />
           <h1 className="text-lg font-semibold tracking-[-0.01em] text-ink">
             {game.title}
           </h1>

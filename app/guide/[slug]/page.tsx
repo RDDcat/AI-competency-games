@@ -8,6 +8,7 @@ import {
 } from "@/lib/games";
 import { SITE_URL } from "@/lib/site";
 import { Badge, KeyCap, LinkButton } from "@/components/ui";
+import { GameIcon } from "@/components/game-icon";
 
 // 정의된 게임 slug 만 빌드/서빙하고 나머지는 404
 export const dynamicParams = false;
@@ -82,7 +83,12 @@ export default async function GuidePage({
 
       <header className="mb-10">
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-2xl">{game.emoji}</span>
+          <GameIcon
+            slug={game.slug}
+            emoji={game.emoji}
+            size={26}
+            className="text-ink"
+          />
           <Badge tone={CATEGORY_TONE[game.category]}>{game.category}</Badge>
           <Badge>{game.tier}</Badge>
         </div>
@@ -187,8 +193,9 @@ export default async function GuidePage({
             className="flex-1 rounded-xl border border-hairline p-4 transition-colors hover:bg-surface-soft"
           >
             <span className="text-[12px] text-muted-soft">← 이전 공략</span>
-            <span className="mt-1 block text-sm font-semibold text-ink">
-              {prev.emoji} {prev.title}
+            <span className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-ink">
+              <GameIcon slug={prev.slug} emoji={prev.emoji} size={18} />
+              {prev.title}
             </span>
           </Link>
         ) : (
@@ -203,8 +210,9 @@ export default async function GuidePage({
             className="flex-1 rounded-xl border border-hairline p-4 text-right transition-colors hover:bg-surface-soft"
           >
             <span className="text-[12px] text-muted-soft">다음 공략 →</span>
-            <span className="mt-1 block text-sm font-semibold text-ink">
-              {next.title} {next.emoji}
+            <span className="mt-1 flex items-center justify-end gap-1.5 text-sm font-semibold text-ink">
+              {next.title}
+              <GameIcon slug={next.slug} emoji={next.emoji} size={18} />
             </span>
           </Link>
         ) : (

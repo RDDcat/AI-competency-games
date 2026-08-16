@@ -8,6 +8,7 @@ import {
 } from "@/lib/games";
 import { SITE_NAME } from "@/lib/site";
 import { Badge } from "@/components/ui";
+import { GameIcon } from "@/components/game-icon";
 
 export const metadata: Metadata = {
   title: "공략 가이드",
@@ -77,7 +78,12 @@ function GuideCard({ game }: { game: GameMeta }) {
       className="group flex flex-col rounded-xl bg-surface-card p-6 transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
     >
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-xl">{game.emoji}</span>
+        <GameIcon
+          slug={game.slug}
+          emoji={game.emoji}
+          size={22}
+          className="text-ink"
+        />
         <Badge tone={CATEGORY_TONE[game.category]}>{game.category}</Badge>
       </div>
       <h3 className="text-base font-semibold tracking-[-0.01em] text-ink">
