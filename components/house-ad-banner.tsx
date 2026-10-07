@@ -62,6 +62,9 @@ export function HouseAdBanner() {
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleClick}
+        onAuxClick={(e) => {
+          if (e.button === 1) handleClick();
+        }}
         className="block rounded-2xl border border-hairline bg-canvas p-5 text-left shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-colors hover:bg-surface-soft"
       >
         <span className="inline-flex items-center rounded-full bg-surface-card px-2 py-0.5 text-[11px] font-medium text-muted-soft">
@@ -72,6 +75,7 @@ export function HouseAdBanner() {
         <span className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-on-dark sm:w-auto">
           {ad.cta}
         </span>
+        <span className="sr-only">(새 탭에서 열림)</span>
       </a>
     </aside>
   );

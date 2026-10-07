@@ -360,8 +360,8 @@ function ResultScreen({
           기록은 이 브라우저의 로컬 저장소에만 저장됩니다.
         </p>
       </section>
-      <HouseAdBanner />
       {review && showReview && <div className="mt-4">{review}</div>}
+      <HouseAdBanner />
     </div>
   );
 }
