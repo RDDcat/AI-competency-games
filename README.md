@@ -26,6 +26,7 @@
 npm install
 npm run dev    # http://localhost:3000
 npm run build
+npm test       # vitest (lib 단위 테스트)
 ```
 
 스택: Next.js (App Router) + TypeScript + Tailwind CSS v4. 외부 런타임 의존성 없음.
@@ -50,7 +51,16 @@ npx vercel        # 프리뷰
 npx vercel --prod # 프로덕션
 ```
 
-별도 환경변수·DB 설정 없음. 빌드 명령 기본값(`next build`) 그대로 사용.
+DB 없음. 빌드 명령 기본값(`next build`) 그대로 사용.
+
+하우스 배너(결과 화면 광고)용 서버 전용 환경변수 — 비어 있으면 배너가 안 뜰 뿐 사이트는 정상 동작:
+
+| 변수 | 설명 |
+|---|---|
+| `PLATFORM_URL` | 개인 플랫폼 API 베이스 URL (`/v1/ads/yeokgeom-result`, `/v1/events`) |
+| `PLATFORM_KEY` | 플랫폼 서비스 키 (Bearer). 서버 전용 — `NEXT_PUBLIC_` 금지 |
+
+서버 라우트: `GET /api/house-ad` (캠페인 목록, 5분 캐시) · `POST /api/ad-event` (노출·클릭 중계).
 
 ## 면책
 
