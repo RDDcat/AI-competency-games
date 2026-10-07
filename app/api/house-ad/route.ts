@@ -1,6 +1,6 @@
 import { HOUSE_AD_SLOT, parseCampaigns, type HouseAd } from "@/lib/house-ad";
 
-// 플랫폼 광고 설정을 5분 단위로 재검증 캐시 (Cache Components 미사용 → 세그먼트 revalidate + fetch next.revalidate).
+// 플랫폼 광고 설정을 5분 단위로 재검증 캐시 (Cache Components 미사용 → 라우트 세그먼트 revalidate 가 단일 캐시).
 export const revalidate = 300;
 
 const TIMEOUT_MS = 3000;
@@ -18,7 +18,6 @@ async function loadCampaigns(): Promise<HouseAd[]> {
     const res = await fetch(`${base.replace(/\/+$/, "")}/v1/ads/${HOUSE_AD_SLOT}`, {
       headers: { Authorization: `Bearer ${key}` },
       signal: AbortSignal.timeout(TIMEOUT_MS),
-      next: { revalidate: 300 },
     });
     if (!res.ok) {
       console.error(`[house-ad] platform ads fetch failed: HTTP ${res.status}`);

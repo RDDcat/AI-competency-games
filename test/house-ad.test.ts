@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { parseAdEvent, parseCampaigns, pickWeighted, withUtm, type HouseAd } from "@/lib/house-ad";
+import {
+  isSameOriginRequest,
+  parseAdEvent,
+  parseCampaigns,
+  pickWeighted,
+  withUtm,
+  type HouseAd,
+} from "@/lib/house-ad";
 
 const ad = (id: number, weight: number): HouseAd => ({
   id,
@@ -131,5 +138,57 @@ describe("parseCampaigns", () => {
     expect(parseCampaigns(null)).toEqual([]);
     expect(parseCampaigns({})).toEqual([]);
     expect(parseCampaigns({ campaigns: "x" })).toEqual([]);
+  });
+});
+
+describe("URL 파싱 가드", () => {
+  it("withUtm: 파싱 불가 URL 은 원문 그대로", () => {
+    expect(withUtm("not a url", 1)).toBe("not a url");
+    expect(withUtm("", 1)).toBe("");
+  });
+
+  it("parseCampaigns: 파싱 불가·비 https 링크는 건너뛴다", () => {
+    const res = parseCampaigns({
+      campaigns: [
+        { ...ad(1, 10), target_url: "https://" },
+        { ...ad(2, 10), target_url: "https:// bad host" },
+        { ...ad(3, 10), target_url: "HTTPS://example.com/ok" },
+        { ...ad(4, 10), target_url: "javascript:alert(1)" },
+        { ...ad(5, 10), target_url: "ftp://example.com" },
+      ],
+    });
+    expect(res.map((c) => c.id)).toEqual([3]);
+  });
+});
+
+describe("isSameOriginRequest", () => {
+  it("헤더가 없으면 허용", () => {
+    expect(isSameOriginRequest({})).toBe(true);
+    expect(isSameOriginRequest({ secFetchSite: null, origin: null, host: "a.com" })).toBe(true);
+  });
+
+  it("Sec-Fetch-Site 가 same-origin 이 아니면 거부", () => {
+    expect(isSameOriginRequest({ secFetchSite: "same-origin", host: "a.com" })).toBe(true);
+    expect(isSameOriginRequest({ secFetchSite: "cross-site", host: "a.com" })).toBe(false);
+    expect(isSameOriginRequest({ secFetchSite: "same-site", host: "a.com" })).toBe(false);
+    expect(isSameOriginRequest({ secFetchSite: "none", host: "a.com" })).toBe(false);
+  });
+
+  it("Origin 호스트가 요청 호스트와 다르면 거부", () => {
+    expect(isSameOriginRequest({ origin: "https://a.com", host: "a.com" })).toBe(true);
+    expect(isSameOriginRequest({ origin: "http://localhost:3000", host: "localhost:3000" })).toBe(true);
+    expect(isSameOriginRequest({ origin: "https://evil.com", host: "a.com" })).toBe(false);
+    expect(isSameOriginRequest({ origin: "https://a.com:8443", host: "a.com" })).toBe(false);
+    expect(isSameOriginRequest({ origin: "https://a.com", host: null })).toBe(false);
+    expect(isSameOriginRequest({ origin: "null", host: "a.com" })).toBe(false);
+  });
+
+  it("둘 다 있으면 둘 다 통과해야 허용", () => {
+    expect(
+      isSameOriginRequest({ secFetchSite: "same-origin", origin: "https://a.com", host: "a.com" }),
+    ).toBe(true);
+    expect(
+      isSameOriginRequest({ secFetchSite: "same-origin", origin: "https://evil.com", host: "a.com" }),
+    ).toBe(false);
   });
 });

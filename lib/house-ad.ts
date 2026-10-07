@@ -38,7 +38,12 @@ export function pickWeighted(ads: HouseAd[], rand: number): HouseAd | null {
 
 /** 기존 쿼리는 보존하고 UTM 3종은 덮어쓴다. */
 export function withUtm(url: string, campaignId: number): string {
-  const u = new URL(url);
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return url;
+  }
   u.searchParams.set("utm_source", "yeokgeom");
   u.searchParams.set("utm_medium", "house_ad");
   u.searchParams.set("utm_campaign", `c${campaignId}`);
@@ -67,9 +72,41 @@ export function parseCampaigns(json: unknown): HouseAd[] {
     const { id, title, body, cta, target_url, weight } = c as Record<string, unknown>;
     if (typeof id !== "number" || !Number.isInteger(id)) continue;
     if (typeof title !== "string" || typeof body !== "string" || typeof cta !== "string") continue;
-    if (typeof target_url !== "string" || !target_url.startsWith("https://")) continue;
+    if (typeof target_url !== "string" || !isHttpsUrl(target_url)) continue;
     if (typeof weight !== "number" || !Number.isInteger(weight) || weight <= 0) continue;
     out.push({ id, title, body, cta, target_url, weight });
   }
   return out;
+}
+
+function isHttpsUrl(url: string): boolean {
+  try {
+    return new URL(url).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * /api/ad-event 동일 출처 검사. Sec-Fetch-Site 가 있으면 same-origin 이어야 하고,
+ * Origin 이 있으면 그 host 가 요청 Host 와 같아야 한다. 둘 다 없으면(구형 클라이언트) 허용.
+ */
+export function isSameOriginRequest(headers: {
+  secFetchSite?: string | null;
+  origin?: string | null;
+  host?: string | null;
+}): boolean {
+  const { secFetchSite, origin, host } = headers;
+  if (secFetchSite != null && secFetchSite !== "same-origin") return false;
+  if (origin != null) {
+    if (!host) return false;
+    let originHost: string;
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      return false;
+    }
+    if (originHost.toLowerCase() !== host.toLowerCase()) return false;
+  }
+  return true;
 }
