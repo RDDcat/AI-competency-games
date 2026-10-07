@@ -21,6 +21,7 @@ import {
   trackShare,
 } from "@/lib/analytics";
 import { Badge, Button, KeyCap, LinkButton } from "@/components/ui";
+import { HouseAdBanner } from "@/components/house-ad-banner";
 
 type ShellApi = {
   /** 게임이 끝났을 때 결과를 보고한다. review 는 결과 화면 ‘자세히 보기’에 표시(선택) */
@@ -359,6 +360,7 @@ function ResultScreen({
           기록은 이 브라우저의 로컬 저장소에만 저장됩니다.
         </p>
       </section>
+      <HouseAdBanner />
       {review && showReview && <div className="mt-4">{review}</div>}
     </div>
   );

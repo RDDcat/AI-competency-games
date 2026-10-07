@@ -110,3 +110,44 @@ export function isSameOriginRequest(headers: {
   }
   return true;
 }
+
+type AdEventTransport = {
+  sendBeacon?: (url: string, data: Blob) => boolean;
+  fetch?: (url: string, init: RequestInit) => Promise<unknown>;
+};
+
+/**
+ * 클라이언트 → /api/ad-event 전송. sendBeacon(JSON Blob) 우선, 없거나 false 면 fetch keepalive.
+ * 실패는 전부 조용히 삼킨다 (fail-open, 콘솔 에러 없음).
+ */
+export function sendAdEvent(
+  ev: { type: AdEventType; campaignId: number; viewId: string },
+  transport: AdEventTransport = defaultTransport(),
+): void {
+  const body = JSON.stringify({ type: ev.type, slot: HOUSE_AD_SLOT, campaignId: ev.campaignId, viewId: ev.viewId });
+  try {
+    if (transport.sendBeacon?.("/api/ad-event", new Blob([body], { type: "application/json" }))) return;
+  } catch {
+    // 폴백으로 진행
+  }
+  try {
+    transport
+      .fetch?.("/api/ad-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      })
+      ?.catch(() => {});
+  } catch {
+    // 무시
+  }
+}
+
+function defaultTransport(): AdEventTransport {
+  if (typeof navigator === "undefined") return {};
+  return {
+    sendBeacon: typeof navigator.sendBeacon === "function" ? (u, d) => navigator.sendBeacon(u, d) : undefined,
+    fetch: typeof fetch === "function" ? (u, i) => fetch(u, i) : undefined,
+  };
+}

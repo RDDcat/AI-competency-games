@@ -12,6 +12,8 @@
  * 집계하므로 여기서 다시 보내지 않는다(중복 방지).
  */
 
+import { HOUSE_AD_SLOT } from "@/lib/house-ad";
+
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
@@ -35,6 +37,8 @@ export const GA_EVENTS = {
   shareClick: "share_click",
   /** 오픈채팅·문의·북마크·광고 등 CTA 클릭 */
   ctaClick: "cta_click",
+  /** 결과 화면 하우스 배너 노출 */
+  houseAdView: "house_ad_view",
 } as const;
 
 export type GaEventName = (typeof GA_EVENTS)[keyof typeof GA_EVENTS];
@@ -148,4 +152,9 @@ export function trackCtaClick(p: {
     location: p.location,
     url: p.url,
   });
+}
+
+/** 하우스 배너 노출 (클릭은 trackCtaClick({ type: "ad", location: "result", url })) */
+export function trackHouseAdView(p: { campaignId: number }): void {
+  track(GA_EVENTS.houseAdView, { slot: HOUSE_AD_SLOT, campaign_id: p.campaignId });
 }
